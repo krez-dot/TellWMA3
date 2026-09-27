@@ -1,0 +1,28 @@
+{
+  "name": "tell",
+  "version": "2.0.0",
+  "description": "Tell — a study focus tracker built with Ionic (web + Android via Cordova)",
+  "scripts": {
+    "libs": "node scripts/build.js libs",
+    "build": "node scripts/build.js",
+    "serve": "npm run build && http-server dist -p 8100 -c-1",
+    "dev": "npm run libs && http-server web -p 8100 -c-1",
+    "build:android": "node scripts/build.js android && cd android && npx cordova prepare && npx cordova build android",
+    "run:android": "node scripts/build.js android && cd android && npx cordova prepare && npx cordova run android"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fontsource/poppins": "^5.3.0",
+    "@ionic/core": "^9.0.5",
+    "mammoth": "^1.12.3",
+    "pdfjs-dist": "^3.11.174"
+  },
+  "devDependencies": {
+    "cordova": "^13.0.0",
+    "http-server": "^14.1.1"
+  },
+  "private": true
+}

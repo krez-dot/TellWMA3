@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.krezdot.tell" version="2.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Tell</name>
+    <description>
+        Tells you when you stop actually studying, from how you scroll, type and wander off.
+    </description>
+    <author href="https://github.com/krez-dot/tell">
+        Tell team
+    </author>
+
+    <!-- www/ is the built Ionic web app, copied in by `npm run build:android` -->
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+
+    <!-- Allow both portrait and landscape; the layout adapts to each -->
+    <preference name="Orientation" value="default" />
+    <preference name="BackgroundColor" value="0xfffff5f8" />
+    <preference name="AndroidWindowSplashScreenBackground" value="#fff5f8" />
+    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/icon/splash.png" />
+
+    <platform name="android">
+        <icon background="res/icon/background.png" foreground="res/icon/foreground.png" src="res/icon/icon.png" density="xxxhdpi" />
+    </platform>
+</widget>

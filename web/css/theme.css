@@ -1,0 +1,93 @@
+/* Tell's pastel palette, mapped onto Ionic's color system so every Ionic
+   component (buttons, toggles, tabs, chips...) picks it up automatically. */
+
+@font-face { font-family: 'Poppins'; font-weight: 400; font-display: swap; src: url('../lib/fonts/poppins-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 500; font-display: swap; src: url('../lib/fonts/poppins-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 600; font-display: swap; src: url('../lib/fonts/poppins-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 700; font-display: swap; src: url('../lib/fonts/poppins-latin-700-normal.woff2') format('woff2'); }
+
+:root {
+  --ion-font-family: 'Poppins', system-ui, sans-serif;
+
+  /* primary = Tell pink */
+  --ion-color-primary: #ff7fa2;
+  --ion-color-primary-rgb: 255, 127, 162;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e0708f;
+  --ion-color-primary-tint: #ff8cab;
+
+  /* secondary = lavender (marker button) */
+  --ion-color-secondary: #8e7cc3;
+  --ion-color-secondary-rgb: 142, 124, 195;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #7d6dac;
+  --ion-color-secondary-tint: #9989c9;
+
+  /* success = mint ("calm") */
+  --ion-color-success: #3fae84;
+  --ion-color-success-rgb: 63, 174, 132;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #379974;
+  --ion-color-success-tint: #52b690;
+
+  /* danger = coral ("restless") */
+  --ion-color-danger: #e5486a;
+  --ion-color-danger-rgb: 229, 72, 106;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #ca3f5d;
+  --ion-color-danger-tint: #e85a79;
+
+  --ion-color-warning: #ffd27a;
+  --ion-color-warning-rgb: 255, 210, 122;
+  --ion-color-warning-contrast: #4a3f55;
+  --ion-color-warning-contrast-rgb: 74, 63, 85;
+  --ion-color-warning-shade: #e0b96b;
+  --ion-color-warning-tint: #ffd787;
+
+  --ion-background-color: #fff5f8;
+  --ion-background-color-rgb: 255, 245, 248;
+  --ion-text-color: #4a3f55;
+  --ion-text-color-rgb: 74, 63, 85;
+  --ion-item-background: #ffffff;
+  --ion-card-background: #ffffff;
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-color-selected: var(--ion-color-primary);
+
+  /* app-specific tokens */
+  --tell-muted: #a596ac;
+  --tell-surface: #ffffff;
+  --tell-soft: #fbeaf0;
+  --tell-doc-bg: #4b3b66;
+  --tell-calm-bg: #d3f2e5;
+  --tell-calm-text: #1f6b4d;
+  --tell-restless-bg: #ffd0d7;
+  --tell-restless-text: #a3223e;
+  --tell-bar: #e25c86; /* week chart bars: deeper pink so the bars stand out on white */
+  --tell-radius: 18px;
+}
+
+/* Dark mode: Ionic's dark palette is on (.ion-palette-dark); re-tint it for Tell */
+:root.ion-palette-dark {
+  --ion-background-color: #1c1622;
+  --ion-background-color-rgb: 28, 22, 34;
+  --ion-text-color: #f1e8f4;
+  --ion-text-color-rgb: 241, 232, 244;
+  --ion-item-background: #271f2f;
+  --ion-card-background: #271f2f;
+  --ion-tab-bar-background: #221b29;
+  --ion-toolbar-background: #221b29;
+
+  --tell-muted: #a494ab;
+  --tell-surface: #271f2f;
+  --tell-soft: #33283d;
+  --tell-doc-bg: #120e17;
+  --tell-calm-bg: #1d3a2f;
+  --tell-calm-text: #8fe0bd;
+  --tell-restless-bg: #4a1f2a;
+  --tell-restless-text: #ffb3bd;
+  --tell-bar: #e0618a;
+}

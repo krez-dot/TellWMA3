@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover lets Ionic handle notches / rounded corners on phones -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ff8fab">
+  <meta name="description" content="Tell notices when you stop actually studying — from how you scroll, type and wander off.">
+  <title>Tell</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+
+  <!-- Ionic styles + dark palette (enabled by adding .ion-palette-dark to <html>) -->
+  <link rel="stylesheet" href="lib/ionic/css/ionic.bundle.css">
+  <link rel="stylesheet" href="lib/ionic/css/dark.class.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app.css">
+
+  <!-- Ionic web components (loads each component on demand) -->
+  <script type="module" src="lib/ionic/ionic.esm.js"></script>
+
+  <!-- Document renderers: pdf.js (PDF) and mammoth (DOCX -> HTML) -->
+  <script src="lib/pdfjs/pdf.min.js"></script>
+  <script src="lib/mammoth/mammoth.browser.min.js"></script>
+
+  <!-- Empty on the web; replaced by Cordova's real cordova.js in the Android build -->
+  <script src="cordova.js"></script>
+</head>
+<body>
+<ion-app>
+  <ion-tabs id="tabs">
+
+    <!-- ============================ STUDY TAB ============================ -->
+    <ion-tab tab="study">
+      <div class="ion-page" id="studyPage">
+        <ion-header>
+          <ion-toolbar color="primary">
+            <ion-title id="studyTitle">Tell</ion-title>
+            <ion-buttons slot="end">
+              <ion-chip id="timerChip" class="timer-chip" hidden>
+                <ion-icon src="lib/icons/stopwatch-outline.svg"></ion-icon>
+                <ion-label><span id="timerLabel">00:00</span></ion-label>
+              </ion-chip>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content id="studyContent">
+          <!-- ---------- Landing: pick a document ---------- -->
+          <div id="landing" class="landing">
+            <ion-card class="hero-card">
+              <ion-card-header>
+                <ion-card-subtitle id="greeting">Ready when you are</ion-card-subtitle>
+                <ion-card-title>What are we studying today?</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Open your PDF or DOCX here and take notes on the side. Tell watches <em>how</em> you study
+                  and tells you when you've drifted.</p>
+
+                <!-- Drop zone: drag a file in on desktop, or tap the button on phones.
+                     The native file input is hidden; the Ionic button opens it. -->
+                <div id="dropZone" class="drop-zone">
+                  <ion-icon src="lib/icons/cloud-upload-outline.svg"></ion-icon>
+                  <p class="drop-title">Drop a PDF or DOCX here</p>
+                  <p class="drop-or">or</p>
+                  <input type="file" id="fileInput" hidden
+                         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                  <ion-button id="pickFileBtn" size="large" shape="round">
+                    <ion-icon slot="start" src="lib/icons/folder-open.svg"></ion-icon>
+                    Choose a file
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <div class="side-stack">
+              <ion-card class="goal-card">
+                <ion-card-header>
+                  <div class="card-head-row">
+                    <ion-card-subtitle>Today's goal</ion-card-subtitle>
+                    <ion-chip id="streakChip" class="streak-chip" hidden>
+                      <ion-icon src="lib/icons/flame.svg"></ion-icon>
+                      <ion-label><span id="streakText">1-day streak</span></ion-label>
+                    </ion-chip>
+                  </div>
+                  <ion-card-title id="goalText">0 / 60 min</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-progress-bar id="goalBar" value="0"></ion-progress-bar>
+                  <ion-note id="goalHint" class="block-note">Change your daily goal in Settings.</ion-note>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Focused minutes for the last 7 days (bars built by study.js) -->
+              <ion-card class="week-card">
+                <ion-card-header>
+                  <ion-card-subtitle>Focused minutes · last 7 days</ion-card-subtitle>
+                  <ion-card-title id="weekTotal">0m</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <div id="weekChart" class="week-chart" role="img" aria-label="Focused minutes per day"></div>
+                </ion-card-content>
+              </ion-card>
+            </div>
+
+            <!-- Last few sessions, tap to open details -->
+            <section id="recentSection" class="landing-section" hidden>
+              <div class="section-head">
+                <h3>Recent sessions</h3>
+                <ion-button id="seeAllBtn" fill="clear" size="small">
+                  See all
+                  <ion-icon slot="end" src="lib/icons/chevron-forward.svg"></ion-icon>
+                </ion-button>
+              </div>
+              <ion-list id="recentList" inset="true" class="recent-list"></ion-list>
+            </section>
+
+            <!-- Explains the detection rules (useful for first-time users) -->
+            <section class="landing-section how">
+              <div class="section-head"><h3>How Tell knows you've drifted</h3></div>
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="12" size-sm="6" size-lg="3">
+                    <div class="how-card">
+                      <ion-icon src="lib/icons/swap-vertical.svg" class="how-icon scroll"></ion-icon>
+                      <h4>Restless scrolling</h4>
+                      <p>Flicking up and down instead of reading one way.</p>
+                    </div>
+                  </ion-col>
+                  <ion-col size="12" size-sm="6" size-lg="3">
+                    <div class="how-card">
+                      <ion-icon src="lib/icons/stopwatch-outline.svg" class="how-icon idle"></ion-icon>
+                      <h4>Going idle</h4>
+                      <p>No scrolling, typing or touching for a while.</p>
+                    </div>
+                  </ion-col>
+                  <ion-col size="12" size-sm="6" size-lg="3">
+                    <div class="how-card">
+                      <ion-icon src="lib/icons/eye-off-outline.svg" class="how-icon away"></ion-icon>
+                      <h4>Leaving the app</h4>
+                      <p>Switching tabs or apps mid-session.</p>
+                    </div>
+                  </ion-col>
+                  <ion-col size="12" size-sm="6" size-lg="3">
+                    <div class="how-card">
+                      <ion-icon src="lib/icons/hand-left.svg" class="how-icon mark"></ion-icon>
+                      <h4>Marking it yourself</h4>
+                      <p>Tap the hand button when a page is hard to focus on.</p>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </section>
+
+            <!-- Shown only if the app was closed mid-session -->
+            <ion-card id="recoverCard" color="warning" hidden>
+              <ion-card-header>
+                <ion-card-title>Unfinished session found</ion-card-title>
+                <ion-card-subtitle id="recoverInfo"></ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                The app closed before you ended this session. Save what was recorded, or throw it away.
+                <div class="button-row">
+                  <ion-button id="recoverSaveBtn" fill="solid" color="dark">Save to history</ion-button>
+                  <ion-button id="recoverDiscardBtn" fill="outline" color="dark">Discard</ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <div class="privacy-note">
+              <ion-icon src="lib/icons/shield-checkmark-outline.svg"></ion-icon>
+              <span>Everything stays on this device. Your documents and history are never uploaded anywhere.</span>
+            </div>
+          </div>
+
+          <!-- ---------- Active study session ---------- -->
+          <div id="session" class="session" hidden>
+            <ion-grid class="session-grid ion-no-padding">
+              <ion-row class="session-row">
+                <!-- Document viewer: full width on phones (portrait), 2/3 width on tablets/desktop/landscape -->
+                <ion-col size="12" size-md="8" class="doc-col">
+                  <ion-progress-bar id="renderBar" type="indeterminate" hidden></ion-progress-bar>
+                  <div id="doc" class="doc" tabindex="0"></div>
+                </ion-col>
+
+                <!-- Side panel: status, stats, notes, controls -->
+                <ion-col size="12" size-md="4" class="side-col">
+                  <div class="side">
+                    <div id="status" class="status calm">
+                      <ion-icon src="lib/icons/pulse.svg"></ion-icon>
+                      <span id="statusText">Calm</span>
+                    </div>
+
+                    <div class="stats">
+                      <div class="stat"><span class="stat-value" id="statPage">-</span><span class="stat-label">page</span></div>
+                      <div class="stat"><span class="stat-value" id="statRestless">0</span><span class="stat-label">restless</span></div>
+                      <div class="stat"><span class="stat-value" id="statMarkers">0</span><span class="stat-label">marked</span></div>
+                      <div class="stat"><span class="stat-value" id="statFocus">100%</span><span class="stat-label">focus</span></div>
+                    </div>
+
+                    <ion-textarea id="notes" class="notes" label="Notes" label-placement="stacked" fill="outline"
+                                  placeholder="Type your notes while you read…" rows="6" auto-grow="false"></ion-textarea>
+
+                    <ion-item lines="none" class="compact-item">
+                      <ion-toggle id="sessionSoundToggle" checked>Yell at me when distracted</ion-toggle>
+                    </ion-item>
+
+                    <ion-note class="block-note">
+                      Feeling restless? Tap <strong>the hand button</strong> (or press <kbd>F8</kbd>) to mark the moment.
+                    </ion-note>
+
+                    <ion-button id="endSessionBtn" expand="block" color="danger" fill="outline">
+                      <ion-icon slot="start" src="lib/icons/stop-circle.svg"></ion-icon>
+                      End session
+                    </ion-button>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+
+          <!-- "I'm restless" self-report button, floats over the document -->
+          <ion-fab slot="fixed" vertical="bottom" horizontal="end" id="markerFab" hidden>
+            <ion-fab-button id="markerBtn" color="secondary" aria-label="Mark that I'm restless">
+              <ion-icon src="lib/icons/hand-left.svg"></ion-icon>
+            </ion-fab-button>
+          </ion-fab>
+
+          <div id="flash" class="flash"></div>
+        </ion-content>
+      </div>
+    </ion-tab>
+
+    <!-- ============================ HISTORY TAB ============================ -->
+    <ion-tab tab="history">
+      <div class="ion-page">
+        <ion-header>
+          <ion-toolbar color="primary">
+            <ion-title>History</ion-title>
+            <ion-buttons slot="end">
+              <ion-button id="clearHistoryBtn" aria-label="Clear history">
+                <ion-icon slot="icon-only" src="lib/icons/trash.svg"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+          <ion-toolbar>
+            <ion-searchbar id="historySearch" placeholder="Search by document or notes" debounce="150"></ion-searchbar>
+          </ion-toolbar>
+          <ion-toolbar>
+            <ion-segment id="historyRange" value="all">
+              <ion-segment-button value="today"><ion-label>Today</ion-label></ion-segment-button>
+              <ion-segment-button value="week"><ion-label>7 days</ion-label></ion-segment-button>
+              <ion-segment-button value="all"><ion-label>All</ion-label></ion-segment-button>
+            </ion-segment>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content>
+          <ion-grid class="summary-grid">
+            <ion-row>
+              <ion-col size="6" size-md="3"><div class="summary"><span id="sumSessions">0</span><small>sessions</small></div></ion-col>
+              <ion-col size="6" size-md="3"><div class="summary"><span id="sumTime">0m</span><small>studied</small></div></ion-col>
+              <ion-col size="6" size-md="3"><div class="summary"><span id="sumFocus">–</span><small>avg focus</small></div></ion-col>
+              <ion-col size="6" size-md="3"><div class="summary"><span id="sumRestless">0</span><small>restless moments</small></div></ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <ion-list id="historyList" inset="true"></ion-list>
+
+          <div id="historyEmpty" class="empty-state" hidden>
+            <ion-icon src="lib/icons/document-text-outline.svg"></ion-icon>
+            <p id="historyEmptyText">No sessions yet. Finish a study session and it'll show up here.</p>
+          </div>
+        </ion-content>
+
+        <!-- Session details (filled in by history.js) -->
+        <ion-modal id="detailModal">
+          <div class="ion-page">
+            <ion-header>
+              <ion-toolbar color="primary">
+                <ion-title id="detailTitle">Session</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button id="detailCloseBtn" aria-label="Close">
+                    <ion-icon slot="icon-only" src="lib/icons/close.svg"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding" id="detailContent"></ion-content>
+          </div>
+        </ion-modal>
+      </div>
+    </ion-tab>
+
+    <!-- ============================ SETTINGS TAB ============================ -->
+    <ion-tab tab="settings">
+      <div class="ion-page">
+        <ion-header>
+          <ion-toolbar color="primary">
+            <ion-title>Settings</ion-title>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content>
+          <div class="settings-wrap">
+            <ion-list inset="true">
+              <ion-list-header><ion-label>You</ion-label></ion-list-header>
+              <ion-item>
+                <ion-input id="setName" label="Your name" label-placement="floating" maxlength="30"
+                           placeholder="So Tell can greet you"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input id="setGoal" label="Daily study goal (minutes)" label-placement="floating"
+                           type="number" min="5" max="600" inputmode="numeric"></ion-input>
+              </ion-item>
+            </ion-list>
+
+            <ion-list inset="true">
+              <ion-list-header><ion-label>Detection</ion-label></ion-list-header>
+              <ion-item>
+                <ion-range id="setAfk" min="5" max="60" step="1" pin="true" snaps="false"
+                           label-placement="stacked">
+                  <div slot="label" class="range-label">Idle alarm after <strong id="setAfkValue">12</strong>s of no activity</div>
+                </ion-range>
+              </ion-item>
+              <ion-item>
+                <ion-range id="setSensitivity" min="1" max="5" step="1" snaps="true" ticks="true"
+                           label-placement="stacked">
+                  <div slot="label" class="range-label">Scroll sensitivity: <strong id="setSensitivityValue">Normal</strong></div>
+                  <ion-note slot="start">Low</ion-note>
+                  <ion-note slot="end">High</ion-note>
+                </ion-range>
+              </ion-item>
+              <ion-item>
+                <ion-toggle id="setAwayAlert">Alert when I leave the app</ion-toggle>
+              </ion-item>
+            </ion-list>
+
+            <ion-list inset="true">
+              <ion-list-header><ion-label>Alerts &amp; look</ion-label></ion-list-header>
+              <ion-item>
+                <ion-toggle id="setSound">Sound alerts</ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-select id="setTone" label="Alert sound" interface="popover">
+                  <ion-select-option value="beep">Beep</ion-select-option>
+                  <ion-select-option value="chime">Chime</ion-select-option>
+                  <ion-select-option value="buzz">Buzz</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-label>Theme</ion-label>
+              </ion-item>
+              <ion-item>
+                <ion-segment id="setTheme" value="system">
+                  <ion-segment-button value="system"><ion-label>System</ion-label></ion-segment-button>
+                  <ion-segment-button value="light"><ion-label>Light</ion-label></ion-segment-button>
+                  <ion-segment-button value="dark"><ion-label>Dark</ion-label></ion-segment-button>
+                </ion-segment>
+              </ion-item>
+              <ion-item button="true" detail="false" id="testSoundBtn">
+                <ion-icon slot="start" src="lib/icons/flash-outline.svg"></ion-icon>
+                <ion-label>Test alert</ion-label>
+              </ion-item>
+            </ion-list>
+
+            <ion-list inset="true">
+              <ion-list-header><ion-label>Data</ion-label></ion-list-header>
+              <ion-item>
+                <ion-label>
+                  <h3>Stored on this device</h3>
+                  <p id="storageInfo">–</p>
+                </ion-label>
+              </ion-item>
+              <ion-item button="true" detail="false" id="resetSettingsBtn">
+                <ion-label>Reset settings to default</ion-label>
+              </ion-item>
+              <ion-item button="true" detail="false" id="wipeDataBtn">
+                <ion-label color="danger">Delete all data</ion-label>
+              </ion-item>
+            </ion-list>
+
+            <p class="about">
+              <ion-icon src="lib/icons/information-circle-outline.svg"></ion-icon>
+              Tell <span id="appVersion"></span> · <span id="platformLabel"></span><br>
+              No accounts, no servers. Everything is kept in this device's local storage.
+            </p>
+          </div>
+        </ion-content>
+      </div>
+    </ion-tab>
+
+    <!-- Tab bar: bottom on phones, moved to the top on wide screens (see app.js) -->
+    <ion-tab-bar slot="bottom" id="tabBar">
+      <ion-tab-button tab="study">
+        <ion-icon src="lib/icons/book.svg"></ion-icon>
+        <ion-label>Study</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="history">
+        <ion-icon src="lib/icons/time.svg"></ion-icon>
+        <ion-label>History</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="settings">
+        <ion-icon src="lib/icons/settings.svg"></ion-icon>
+        <ion-label>Settings</ion-label>
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
+</ion-app>
+
+<script type="module" src="js/app.js"></script>
+
+<!-- Browsers block ES modules (Ionic + app code) on file:// pages, so opening index.html
+     by double-clicking shows unstyled HTML. Explain how to open it properly instead. -->
+<script>
+  if (location.protocol === 'file:') {
+    document.body.innerHTML =
+      '<div style="font-family:system-ui,sans-serif;max-width:560px;margin:12vh auto;padding:24px;line-height:1.6;color:#4a3f55">' +
+      '<h2 style="color:#e25c86;margin-top:0">Tell needs to be opened through a local web server</h2>' +
+      '<p>Browsers block the app\'s JavaScript when <code>index.html</code> is opened directly from a folder.</p>' +
+      '<p>In the project folder, run:</p>' +
+      '<pre style="background:#fbeaf0;padding:12px 16px;border-radius:12px">npm install\nnpm run serve</pre>' +
+      '<p>then open <b>http://localhost:8100</b>. The Android APK does not need this.</p></div>';
+  }
+</script>
+</body>
+</html>

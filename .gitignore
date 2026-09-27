@@ -1,0 +1,8 @@
+node_modules/
+web/lib/
+dist/
+android/platforms/
+android/plugins/
+android/node_modules/
+android/www/
+*.apk

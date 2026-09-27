@@ -1,0 +1,23 @@
+{
+  "name": "com.krezdot.tell",
+  "displayName": "Tell",
+  "version": "2.0.0",
+  "description": "Tell (Android build of the Tell Ionic web app, packaged with Cordova)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Mark Joseph Garcia",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-android": "^15.1.0"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ]
+  }
+}

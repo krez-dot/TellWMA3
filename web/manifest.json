@@ -1,0 +1,12 @@
+{
+  "name": "Tell",
+  "short_name": "Tell",
+  "description": "Tells you when you stop actually studying — from how you scroll, type and wander off.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff5f8",
+  "theme_color": "#ff8fab",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
